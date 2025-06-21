@@ -1,0 +1,24 @@
+{
+  "name": "cli-todo",
+  "version": "1.0.0",
+  "description": "Test technique pour recrutement sur un poste back-end. Création d'une to-do list en CLI avec connexions multiples simultanées. Serveur Node.js, BDD MongoDB.",
+  "homepage": "https://github.com/maskeem/CLI-ToDo#readme",
+  "bugs": {
+    "url": "https://github.com/maskeem/CLI-ToDo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maskeem/CLI-ToDo.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "node --watch --env-file=.env server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
+  }
+}
