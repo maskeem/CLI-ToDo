@@ -1,10 +1,12 @@
 import { createServer } from 'net';
+import { connectToDb, getTasksCollection } from '../database/db.js';
+import { ObjectId } from 'mongodb';
 const PORT = process.env.PORT || 3000;
 
 const server = createServer((socket) => {
   console.log('Client connecté');
 
-  socket.on('data', (data) => {
+  socket.on('data', async (data) => {
     const raw = data.toString().trim();
     let command;
 
@@ -24,13 +26,31 @@ const server = createServer((socket) => {
     // Lister les tâches
     if (action === 'list') {
       console.log('Client demande la liste des tâches');
-      socket.write('Voici la liste des tâches\n');
-      const response = {
-        status: 'success',
-        action,
-        message: 'Voici la liste des tâches simulée',
-      };
-      socket.write(JSON.stringify(response) + '\n');
+
+      try {
+        const tasks = getTasksCollection();
+        const allTasks = await tasks.find().toArray();
+        const response = {
+          status: 'success',
+          action,
+          tasks: allTasks.map((task) => ({
+            id: task._id.toString(),
+            description: task.description,
+            completed: task.completed,
+          })),
+        };
+
+        console.log('Liste des tâches envoyée au client :\n');
+        console.table(response.tasks);
+        socket.write(JSON.stringify(response) + '\n');
+      } catch (err) {
+        const errorResponse = {
+          status: 'error',
+          action,
+          message: "Erreur serveur lors de l'accès aux tâches",
+        };
+        socket.write(JSON.stringify(errorResponse) + '\n');
+      }
       return;
     }
 
@@ -52,18 +72,38 @@ const server = createServer((socket) => {
       const taskDescription = command.description;
       console.log(`Client demande création d'une tâche : ${taskDescription}`);
 
-      const response = {
-        status: 'success',
-        action,
-        message: 'Tâche ajoutée avec succès',
-      };
-      socket.write(JSON.stringify(response) + '\n');
+      try {
+        // Accès à la collection et récupération des tâches en BDD
+        const tasks = getTasksCollection();
+        const result = await tasks.insertOne({
+          description: taskDescription,
+          completed: false,
+          createdAt: new Date(),
+        });
+
+        const response = {
+          status: 'success',
+          action,
+          message: `Tâche ajoutée avec succès`,
+          id: result.insertedId.toString(),
+        };
+        socket.write(JSON.stringify(response) + '\n');
+      } catch (err) {
+        const errorResponse = {
+          status: 'error',
+          action,
+          message: "Erreur serveur lors de l'ajout de la tâche",
+        };
+        socket.write(JSON.stringify(errorResponse) + '\n');
+      }
       return;
     }
 
     // Marquer une tâche comme terminée
     if (action === 'complete') {
-      if (typeof command.id !== 'string' || command.id.trim() === '') {
+      const taskId = command.id;
+
+      if (typeof taskId !== 'string' || !taskId.trim()) {
         const errorResponse = {
           status: 'error',
           action,
@@ -72,21 +112,50 @@ const server = createServer((socket) => {
         socket.write(JSON.stringify(errorResponse) + '\n');
         return;
       }
-      const taskId = command.id;
       console.log(`Client demande complétion de la tâche : ${taskId}`);
 
-      const response = {
-        status: 'success',
-        action,
-        message: `Tâche ${taskId} complétée avec succès`,
-      };
-      socket.write(JSON.stringify(response) + '\n');
+      try {
+        // Accès à la collection et modification de la tâche en BDD
+        const tasks = getTasksCollection();
+        const result = await tasks.updateOne(
+          {
+            _id: new ObjectId(taskId),
+          },
+          { $set: { completed: true } }
+        );
+
+        if (result.modifiedCount === 0) {
+          const errorResponse = {
+            status: 'error',
+            action,
+            message: `Aucune tâche non validée trouvée avec l'ID ${taskId}`,
+          };
+          socket.write(JSON.stringify(errorResponse) + '\n');
+        } else {
+          const response = {
+            status: 'success',
+            action,
+            message: `Tâche ${taskId} complétée avec succès`,
+          };
+          socket.write(JSON.stringify(response) + '\n');
+        }
+      } catch (err) {
+        const errorResponse = {
+          status: 'error',
+          action,
+          message: 'ID invalide ou erreur serveur',
+        };
+        socket.write(JSON.stringify(errorResponse) + '\n');
+        console.log('Error message : ' + err);
+      }
       return;
     }
 
     // Supprimer une tâche
     if (action === 'delete') {
-      if (typeof command.id !== 'string' || command.id.trim() === '') {
+      const taskId = command.id;
+
+      if (typeof taskId !== 'string' || !taskId.trim()) {
         const errorResponse = {
           status: 'error',
           action,
@@ -95,15 +164,37 @@ const server = createServer((socket) => {
         socket.write(JSON.stringify(errorResponse) + '\n');
         return;
       }
-      const taskId = command.id;
       console.log(`Client demande suppression de la tâche : ${taskId}`);
 
-      const response = {
-        status: 'success',
-        action,
-        message: `Tâche ${taskId} supprimée avec succès`,
-      };
-      socket.write(JSON.stringify(response) + '\n');
+      try {
+        const tasks = getTasksCollection();
+        const result = await tasks.deleteOne({
+          _id: new ObjectId(taskId),
+        });
+
+        if (result.deletedCount === 0) {
+          const errorResponse = {
+            status: 'error',
+            action,
+            message: `Aucune tâche trouvée avec l'ID ${taskId}`,
+          };
+          socket.write(JSON.stringify(errorResponse) + '\n');
+        } else {
+          const response = {
+            status: 'success',
+            action,
+            message: `Tâche ${taskId} supprimée avec succès`,
+          };
+          socket.write(JSON.stringify(response) + '\n');
+        }
+      } catch (err) {
+        const errorResponse = {
+          status: 'error',
+          action,
+          message: 'ID invalide ou erreur serveur',
+        };
+        socket.write(JSON.stringify(errorResponse) + '\n');
+      }
       return;
     }
 
@@ -130,6 +221,15 @@ const server = createServer((socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Serveur lancé sur le port ${PORT}`);
+async function main() {
+  // Connexion à la BDD
+  await connectToDb();
+
+  server.listen(PORT, () => {
+    console.log(`Serveur lancé sur le port ${PORT}`);
+  });
+}
+
+main().catch((err) => {
+  console.error('Erreur au lancement du serveur : ', err);
 });
