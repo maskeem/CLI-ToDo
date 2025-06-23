@@ -19,9 +19,9 @@ export async function listTasks(command, socket) {
       })),
     };
 
+    socket.write(JSON.stringify(response) + '\n');
     console.log('Liste des tâches envoyée au client :');
     console.table(response.tasks);
-    socket.write(JSON.stringify(response) + '\n');
   } catch (err) {
     const errorResponse = {
       status: 'error',
@@ -35,10 +35,7 @@ export async function listTasks(command, socket) {
 
 // Ajouter une tâche
 export async function addTask(command, socket) {
-  if (
-    typeof command.description !== 'string' ||
-    command.description.trim() === ''
-  ) {
+  if (typeof command.description !== 'string' || !command.description.trim()) {
     const errorResponse = {
       status: 'error',
       action: command.action,
@@ -67,6 +64,7 @@ export async function addTask(command, socket) {
       id: result.insertedId.toString(),
     };
     socket.write(JSON.stringify(response) + '\n');
+    console.log(`Tâche ${response.id} créée : « ${taskDescription} »`);
   } catch (err) {
     const errorResponse = {
       status: 'error',
@@ -107,7 +105,7 @@ export async function completeTask(command, socket) {
       const errorResponse = {
         status: 'error',
         action: command.action,
-        message: `Aucune tâche non validée trouvée avec l'ID ${taskId}`,
+        message: `Aucune tâche non complétée trouvée avec l'ID ${taskId}`,
       };
       socket.write(JSON.stringify(errorResponse) + '\n');
     } else {
@@ -117,6 +115,7 @@ export async function completeTask(command, socket) {
         message: `Tâche ${taskId} complétée avec succès`,
       };
       socket.write(JSON.stringify(response) + '\n');
+      console.log(`Tâche ${response.id} complétée`);
     }
   } catch (err) {
     const errorResponse = {
@@ -165,6 +164,7 @@ export async function deleteTask(command, socket) {
         message: `Tâche ${taskId} supprimée avec succès`,
       };
       socket.write(JSON.stringify(response) + '\n');
+      console.log(`Tâche ${response.id} supprimée`);
     }
   } catch (err) {
     const errorResponse = {

@@ -1,6 +1,5 @@
-import { createServer } from 'net';
-import { connectToDb, getTasksCollection } from '../database/db.js';
-import { ObjectId } from 'mongodb';
+import { createServer } from 'node:net';
+import { connectToDb } from '../database/db.js';
 import {
   listTasks,
   addTask,
@@ -28,13 +27,9 @@ const server = createServer((socket) => {
     }
 
     const action = command.action;
-
     if (action === 'list') return listTasks(command, socket);
-
     if (action === 'add') return addTask(command, socket);
-
     if (action === 'complete') return completeTask(command, socket);
-
     if (action === 'delete') return deleteTask(command, socket);
 
     // Fermer la session
@@ -52,7 +47,12 @@ const server = createServer((socket) => {
     }
 
     console.log('Demande client non comprise');
-    socket.write('Action inconnue\n');
+    const errorResponse = {
+      status: 'error',
+      action,
+      message: 'Action inconnue',
+    };
+    socket.write(JSON.stringify(errorResponse) + '\n');
   });
 
   socket.on('end', () => {

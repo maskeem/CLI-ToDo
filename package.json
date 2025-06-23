@@ -15,8 +15,10 @@
   "type": "module",
   "main": "server/server.js",
   "scripts": {
-    "dev": "node --watch --env-file=.env server/server.js",
+    "server:dev": "node --watch --env-file=.env server/server.js",
+    "client:dev": "node --watch --env-file=.env client/client.js",
     "server:start": "node --env-file=.env server/server.js",
+    "client:start": "node --env-file=.env client/client.js",
     "db:test": "node --env-file=.env test/test-db.js"
   },
   "dependencies": {
