@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { getTasksCollection } from '../database/db.js';
+import { broadcast } from '../server/server.js';
 
 // Lister les tâches
 export async function listTasks(command, socket) {
@@ -20,32 +21,44 @@ export async function listTasks(command, socket) {
     };
 
     socket.write(JSON.stringify(response) + '\n');
+    // broadcast(
+    //   {
+    //     status: 'update',
+    //     action: command.action,
+    //     message: `Liste des tâches demandée par un autre client`,
+    //   },
+    //   socket
+    // );
+
     console.log('>>> Liste des tâches envoyée au client :');
     console.table(response.tasks);
   } catch (err) {
     const errorResponse = {
       status: 'error',
       action: command.action,
-      message: "Erreur serveur lors de l'accès aux tâches",
+      message: "Erreur serveur lors de l'accès aux tâches\n",
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
+    console.log('>>> Error message : ' + err);
   }
   return;
 }
 
 // Ajouter une tâche
 export async function addTask(command, socket) {
-  if (typeof command.description !== 'string' || !command.description.trim()) {
+  const taskDescription = command.description;
+
+  if (typeof taskDescription !== 'string' || !taskDescription.trim()) {
     const errorResponse = {
       status: 'error',
       action: command.action,
       message:
-        "Le champ 'description' est requis et doit être une chaîne non vide",
+        "Le champ 'description' est requis et doit être une chaîne non vide\n",
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
+    console.log('>>> Erreur de description de la tâche');
     return;
   }
-  const taskDescription = command.description;
   console.log(`<<< Client demande création d'une tâche : ${taskDescription}`);
 
   try {
@@ -60,18 +73,28 @@ export async function addTask(command, socket) {
     const response = {
       status: 'success',
       action: command.action,
-      message: `Tâche ajoutée avec succès`,
+      message: `Tâche ajoutée avec succès\n`,
       id: result.insertedId.toString(),
     };
+
     socket.write(JSON.stringify(response) + '\n');
+    broadcast(
+      {
+        status: 'update',
+        action: command.action,
+        message: `Nouvelle tâche créée par un autre client : « ${taskDescription} »\n`,
+      },
+      socket
+    );
     console.log(`>>> Tâche ${response.id} créée : « ${taskDescription} »`);
   } catch (err) {
     const errorResponse = {
       status: 'error',
       action: command.action,
-      message: "Erreur serveur lors de l'ajout de la tâche",
+      message: "Erreur serveur lors de l'ajout de la tâche\n",
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
+    console.log('>>> Error message : ' + err);
   }
   return;
 }
@@ -84,9 +107,10 @@ export async function completeTask(command, socket) {
     const errorResponse = {
       status: 'error',
       action: command.action,
-      message: "Le champ 'id' est requis et doit être une chaîne non vide",
+      message: "Le champ 'id' est requis et doit être une chaîne non vide\n",
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
+    console.log(">>> Erreur de l'ID de la tâche");
     return;
   }
   console.log(`<<< Client demande complétion de la tâche : ${taskId}`);
@@ -105,23 +129,33 @@ export async function completeTask(command, socket) {
       const errorResponse = {
         status: 'error',
         action: command.action,
-        message: `Aucune tâche non complétée trouvée avec l'ID ${taskId}`,
+        message: `Aucune tâche non terminée trouvée avec l'ID ${taskId}\n`,
       };
       socket.write(JSON.stringify(errorResponse) + '\n');
+      console.log(`>>> Tâche ${taskId} non trouvée ou terminée`);
     } else {
       const response = {
         status: 'success',
         action: command.action,
-        message: `Tâche ${taskId} complétée avec succès`,
+        message: `Tâche ${taskId} terminée avec succès\n`,
       };
+
       socket.write(JSON.stringify(response) + '\n');
-      console.log(`>>> Tâche ${taskId} complétée`);
+      broadcast(
+        {
+          status: 'update',
+          action: command.action,
+          message: `Tâche ${taskId} terminée par un autre client\n`,
+        },
+        socket
+      );
+      console.log(`>>> Tâche ${taskId} terminée`);
     }
   } catch (err) {
     const errorResponse = {
       status: 'error',
       action: command.action,
-      message: 'ID invalide ou erreur serveur',
+      message: 'ID invalide ou erreur serveur\n',
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
     console.log('>>> Error message : ' + err);
@@ -137,9 +171,10 @@ export async function deleteTask(command, socket) {
     const errorResponse = {
       status: 'error',
       action: command.action,
-      message: "Le champ 'id' est requis et doit être une chaîne non vide",
+      message: "Le champ 'id' est requis et doit être une chaîne non vide\n",
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
+    console.log(">>> Erreur de l'ID de la tâche");
     return;
   }
   console.log(`<<< Client demande suppression de la tâche : ${taskId}`);
@@ -154,25 +189,36 @@ export async function deleteTask(command, socket) {
       const errorResponse = {
         status: 'error',
         action: command.action,
-        message: `Aucune tâche trouvée avec l'ID ${taskId}`,
+        message: `Aucune tâche trouvée avec l'ID ${taskId}\n`,
       };
       socket.write(JSON.stringify(errorResponse) + '\n');
+      console.log(`>>> Tâche ${taskId} non trouvée`);
     } else {
       const response = {
         status: 'success',
         action: command.action,
-        message: `Tâche ${taskId} supprimée avec succès`,
+        message: `Tâche ${taskId} supprimée avec succès\n`,
       };
+
       socket.write(JSON.stringify(response) + '\n');
+      broadcast(
+        {
+          status: 'update',
+          action: command.action,
+          message: `Tâche ${taskId} supprimée par un autre client\n`,
+        },
+        socket
+      );
       console.log(`>>> Tâche ${taskId} supprimée`);
     }
   } catch (err) {
     const errorResponse = {
       status: 'error',
       action: command.action,
-      message: 'ID invalide ou erreur serveur',
+      message: 'ID invalide ou erreur serveur\n',
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
+    console.log('>>> Error message : ' + err);
   }
   return;
 }

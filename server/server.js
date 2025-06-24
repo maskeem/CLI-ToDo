@@ -27,7 +27,7 @@ const server = createServer((socket) => {
 
       // socket.write('Format JSON invalide\n');
       console.log(
-        `Erreur : le message reçu n'est pas au format JSON\nError message: « ${err.message} »`
+        `Erreur : le message reçu n'est pas au format JSON\nError message: ${err.message}`
       );
       return;
     }
@@ -64,6 +64,24 @@ const server = createServer((socket) => {
     console.log('Client déconnecté');
   });
 });
+
+const clients = [];
+
+server.on('connection', (socket) => {
+  clients.push(socket);
+  socket.on('end', () => {
+    clients.splice(clients.indexOf(socket), 1);
+  });
+});
+
+export function broadcast(message, exceptSocket = null) {
+  const data = JSON.stringify(message) + '\n';
+  for (const client of clients) {
+    if (client !== exceptSocket) {
+      client.write(data);
+    }
+  }
+}
 
 async function main() {
   // Connexion à la BDD

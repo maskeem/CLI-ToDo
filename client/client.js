@@ -4,7 +4,6 @@ import { stdin as input, stdout as output } from 'node:process';
 import { displayTasks, showHelp } from './utils.js';
 
 const PORT = process.env.PORT || 3000;
-console.log(PORT);
 const rl = readline.createInterface({ input, output });
 
 const client = createConnection({ port: PORT }, () => {
@@ -30,11 +29,17 @@ client.on('end', () => {
 
 // Affichage des commandes pour l'utilisateur
 async function prompt() {
-  showHelp();
-  const line = await rl.question('Entrer une commande : ');
+  const line = await rl.question(
+    "Entrer une commande ('help' pour voir les commandes disponibles): \n  > "
+  );
   const [command, ...args] = line.trim().split(' ');
 
   switch (command) {
+    case 'help':
+      showHelp();
+      prompt();
+      break;
+
     case 'list':
       send('list');
       break;
@@ -79,6 +84,8 @@ function handleResponse(response) {
       rl.close();
       process.exit(0);
     }
+  } else if (response.status === 'update') {
+    console.log(`\n\n/!\\ Notification : ${response.message}\n`);
   } else {
     console.log('Erreur : ' + response.message);
   }

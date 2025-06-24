@@ -1,9 +1,10 @@
 export function showHelp() {
   console.log(`
 Commandes disponibles :
+  help                      ➜ Afficher cette aide
   list                      ➜ Lister toutes les tâches
   add <description>         ➜ Ajouter une tâche
-  complete <id>             ➜ Marquer une tâche comme complétée
+  complete <id>             ➜ Marquer une tâche comme terminée
   delete <id>               ➜ Supprimer une tâche
   quit                      ➜ Fermer la session
   `);
@@ -23,4 +24,5 @@ export function displayTasks(tasks) {
     const status = task.completed ? '[X]' : '[ ]';
     console.log(`${status} ${task.description}\t\t(id: ${task.id})`);
   }
+  console.log();
 }
