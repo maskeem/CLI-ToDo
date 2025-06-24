@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-require('dotenv').config();
+import 'dotenv/config';
 
 const db_url = process.env.MONGODB_URL || 'mongodb://localhost:27017';
 const dbName = 'todolist';
