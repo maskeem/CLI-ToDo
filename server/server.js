@@ -6,6 +6,7 @@ import {
   completeTask,
   deleteTask,
 } from '../controllers/taskController.js';
+import { registerClient, unregisterClient } from './clientManager.js';
 const PORT = process.env.PORT || 3000;
 
 const server = createServer((socket) => {
@@ -62,26 +63,13 @@ const server = createServer((socket) => {
 
   socket.on('end', () => {
     console.log('Client déconnecté');
+    unregisterClient(socket);
   });
 });
-
-const clients = [];
 
 server.on('connection', (socket) => {
-  clients.push(socket);
-  socket.on('end', () => {
-    clients.splice(clients.indexOf(socket), 1);
-  });
+  registerClient(socket);
 });
-
-export function broadcast(message, exceptSocket = null) {
-  const data = JSON.stringify(message) + '\n';
-  for (const client of clients) {
-    if (client !== exceptSocket) {
-      client.write(data);
-    }
-  }
-}
 
 async function main() {
   // Connexion à la BDD

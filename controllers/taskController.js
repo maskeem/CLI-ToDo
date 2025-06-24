@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { getTasksCollection } from '../database/db.js';
-import { broadcast } from '../server/server.js';
+import { broadcast } from '../server/clientManager.js';
 
 // Lister les tâches
 export async function listTasks(command, socket) {
@@ -21,15 +21,6 @@ export async function listTasks(command, socket) {
     };
 
     socket.write(JSON.stringify(response) + '\n');
-    // broadcast(
-    //   {
-    //     status: 'update',
-    //     action: command.action,
-    //     message: `Liste des tâches demandée par un autre client`,
-    //   },
-    //   socket
-    // );
-
     console.log('>>> Liste des tâches envoyée au client :');
     console.table(response.tasks);
   } catch (err) {

@@ -8,7 +8,7 @@ const rl = readline.createInterface({ input, output });
 
 const client = createConnection({ port: PORT }, () => {
   console.log(`Client connecté au serveur sur le port ${PORT}`);
-  client.write('{"action":"list"}\n'); // Affichage des tâches existantes à l'ouverture
+  client.write(JSON.stringify({ action: 'list' }) + '\n'); // Affichage des tâches existantes à l'ouverture
 });
 
 client.on('data', (data) => {
