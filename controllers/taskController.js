@@ -3,7 +3,7 @@ import { getTasksCollection } from '../database/db.js';
 
 // Lister les tâches
 export async function listTasks(command, socket) {
-  console.log('Client demande la liste des tâches');
+  console.log('<<< Client demande la liste des tâches');
 
   try {
     const tasks = getTasksCollection();
@@ -20,7 +20,7 @@ export async function listTasks(command, socket) {
     };
 
     socket.write(JSON.stringify(response) + '\n');
-    console.log('Liste des tâches envoyée au client :');
+    console.log('>>> Liste des tâches envoyée au client :');
     console.table(response.tasks);
   } catch (err) {
     const errorResponse = {
@@ -46,7 +46,7 @@ export async function addTask(command, socket) {
     return;
   }
   const taskDescription = command.description;
-  console.log(`Client demande création d'une tâche : ${taskDescription}`);
+  console.log(`<<< Client demande création d'une tâche : ${taskDescription}`);
 
   try {
     // Accès à la collection et récupération des tâches en BDD
@@ -64,7 +64,7 @@ export async function addTask(command, socket) {
       id: result.insertedId.toString(),
     };
     socket.write(JSON.stringify(response) + '\n');
-    console.log(`Tâche ${response.id} créée : « ${taskDescription} »`);
+    console.log(`>>> Tâche ${response.id} créée : « ${taskDescription} »`);
   } catch (err) {
     const errorResponse = {
       status: 'error',
@@ -89,7 +89,7 @@ export async function completeTask(command, socket) {
     socket.write(JSON.stringify(errorResponse) + '\n');
     return;
   }
-  console.log(`Client demande complétion de la tâche : ${taskId}`);
+  console.log(`<<< Client demande complétion de la tâche : ${taskId}`);
 
   try {
     // Accès à la collection et modification de la tâche en BDD
@@ -115,7 +115,7 @@ export async function completeTask(command, socket) {
         message: `Tâche ${taskId} complétée avec succès`,
       };
       socket.write(JSON.stringify(response) + '\n');
-      console.log(`Tâche ${response.id} complétée`);
+      console.log(`>>> Tâche ${taskId} complétée`);
     }
   } catch (err) {
     const errorResponse = {
@@ -124,7 +124,7 @@ export async function completeTask(command, socket) {
       message: 'ID invalide ou erreur serveur',
     };
     socket.write(JSON.stringify(errorResponse) + '\n');
-    console.log('Error message : ' + err);
+    console.log('>>> Error message : ' + err);
   }
   return;
 }
@@ -142,7 +142,7 @@ export async function deleteTask(command, socket) {
     socket.write(JSON.stringify(errorResponse) + '\n');
     return;
   }
-  console.log(`Client demande suppression de la tâche : ${taskId}`);
+  console.log(`<<< Client demande suppression de la tâche : ${taskId}`);
 
   try {
     const tasks = getTasksCollection();
@@ -164,7 +164,7 @@ export async function deleteTask(command, socket) {
         message: `Tâche ${taskId} supprimée avec succès`,
       };
       socket.write(JSON.stringify(response) + '\n');
-      console.log(`Tâche ${response.id} supprimée`);
+      console.log(`>>> Tâche ${taskId} supprimée`);
     }
   } catch (err) {
     const errorResponse = {

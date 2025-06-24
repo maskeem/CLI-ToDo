@@ -19,10 +19,16 @@ const server = createServer((socket) => {
     try {
       command = JSON.parse(raw);
     } catch (err) {
+      const errorResponse = {
+        status: 'error',
+        message: 'Format JSON invalide',
+      };
+      socket.write(JSON.stringify(errorResponse) + '\n');
+
+      // socket.write('Format JSON invalide\n');
       console.log(
         `Erreur : le message reçu n'est pas au format JSON\nError message: « ${err.message} »`
       );
-      socket.write('Format JSON invalide\n');
       return;
     }
 
@@ -34,8 +40,7 @@ const server = createServer((socket) => {
 
     // Fermer la session
     if (action === 'quit') {
-      console.log('Client demande fermeture connexion');
-
+      console.log('<<< Client demande fermeture connexion');
       const response = {
         status: 'success',
         action,
@@ -46,7 +51,7 @@ const server = createServer((socket) => {
       return;
     }
 
-    console.log('Demande client non comprise');
+    console.log('<<< Demande client non comprise');
     const errorResponse = {
       status: 'error',
       action,
