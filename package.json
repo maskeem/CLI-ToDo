@@ -15,15 +15,16 @@
   "type": "module",
   "main": "server/server.js",
   "scripts": {
-    "server:dev": "node --watch --env-file=.env server/server.js",
-    "server:start": "node --env-file=.env server/server.js",
-    "client:dev": "node --watch --env-file=.env client/client.js",
-    "client:start": "node --env-file=.env client/client.js",
-    "client:test": "node --env-file=.env test/test-client.js",
-    "db:seed": "node --env-file=.env database/scripts/seed.js",
-    "db:test": "node --env-file=.env test/test-db.js"
+    "server:dev": "node --watch server/server.js",
+    "server:start": "node server/server.js",
+    "client:dev": "node --watch client/client.js",
+    "client:start": "node client/client.js",
+    "client:test": "node test/test-client.js",
+    "db:seed": "node database/scripts/seed.js",
+    "db:test": "node test/test-db.js"
   },
   "dependencies": {
+    "dotenv": "^16.5.0",
     "mongodb": "^6.17.0"
   }
 }

@@ -7,6 +7,8 @@ import {
   deleteTask,
 } from '../controllers/taskController.js';
 import { registerClient, unregisterClient } from './clientManager.js';
+require('dotenv').config();
+
 const PORT = process.env.PORT || 3000;
 
 const server = createServer((socket) => {

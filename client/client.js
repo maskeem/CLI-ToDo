@@ -2,6 +2,7 @@ import { createConnection } from 'node:net';
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { displayTasks, showHelp } from './utils.js';
+require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
 const rl = readline.createInterface({ input, output });

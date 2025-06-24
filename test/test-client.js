@@ -1,4 +1,5 @@
 import { createConnection } from 'node:net';
+require('dotenv').config();
 
 const client = createConnection({ port: process.env.PORT || 3000 }, () => {
   console.log("Test : envoi de la commande 'list'");
