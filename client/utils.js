@@ -1,7 +1,8 @@
+import chalk from 'chalk';
+
 export function showHelp() {
-  console.log(`
-Commandes disponibles :
-  help                      ➜ Afficher cette aide
+  console.log(chalk.bold.magenta(`Commandes disponibles :`));
+  console.log(`  help                      ➜ Afficher cette aide
   list                      ➜ Lister toutes les tâches
   add <description>         ➜ Ajouter une tâche
   complete <id>             ➜ Marquer une tâche comme terminée
@@ -11,18 +12,24 @@ Commandes disponibles :
 }
 
 export function displayTasks(tasks) {
-  console.log('\nListe des tâches :');
-  // console.table(tasks);
+  console.log(chalk.bold.magenta('\nListe des tâches :'));
 
   if (tasks.length === 0) {
     console.log(
-      "Aucune tâche pour le moment. Ajoutez-en une avec 'add <description>'"
+      chalk.yellow(
+        "Aucune tâche pour le moment. Ajoutez-en une avec 'add <description>'"
+      )
     );
   }
 
   for (const task of tasks) {
-    const status = task.completed ? '[X]' : '[ ]';
-    console.log(`${status} ${task.description}\t\t(id: ${task.id})`);
+    const status = task.completed ? chalk.green('[X]') : chalk.white('[ ]');
+    const description = task.completed
+      ? chalk.gray.strikethrough(task.description)
+      : chalk.white(task.description);
+    const id = chalk.dim(`(id: ${task.id})`);
+
+    console.log(`${status} ${description}\t\t${id}`);
   }
   console.log();
 }

@@ -3,6 +3,8 @@ import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { displayTasks, showHelp } from './utils.js';
 import 'dotenv/config';
+import chalk from 'chalk';
+
 const PORT = process.env.PORT || 3000;
 const rl = readline.createInterface({ input, output });
 
@@ -30,7 +32,8 @@ client.on('end', () => {
 // Affichage des commandes pour l'utilisateur
 async function prompt() {
   const line = await rl.question(
-    "Entrer une commande ('help' pour voir les commandes disponibles): \n  > "
+    chalk.blueBright('Entrer une commande ') +
+      "('help' pour voir les commandes disponibles): \n  > "
   );
   const [command, ...args] = line.trim().split(' ');
 

@@ -21,9 +21,11 @@
     "client:start": "node client/client.js",
     "client:test": "node test/test-client.js",
     "db:seed": "node database/scripts/seed.js",
+    "db:reset": "node database/scripts/reset.js",
     "db:test": "node test/test-db.js"
   },
   "dependencies": {
+    "chalk": "^5.4.1",
     "dotenv": "^16.5.0",
     "mongodb": "^6.17.0"
   }
